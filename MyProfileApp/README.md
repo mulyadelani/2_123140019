@@ -17,12 +17,12 @@ Sebuah aplikasi Android modern yang dibangun menggunakan **Jetpack Compose** unt
 - **Icons**: Material Icons Default.
 
 ## Tampilan Aplikasi
-![Tampilan Aplikasi](screenshots/TampilanApp.jpg)
+![Tampilan Aplikasi](screenshots/TampilanApps.jpg)
 
 **Detail Profil:**
 - **Nama**: Mulya Delani
 - **Institusi**: Mahasiswa Teknik Informatika ITERA
-- **Minat**: Artificial Intelligence & Machine Learning
+- **Minat**: Internet of Things dan Sistem Cerdas berbasis Sensor
 
 ## Cara Menjalankan
 1. **Clone** repositori ini ke komputer lokal Anda.

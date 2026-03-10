@@ -83,7 +83,7 @@ fun MyProfileApp() {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                 Text(
-                    text = "HIDUP UNTUK MATI.",
+                    text = "Hidup Cuma Sekali, Pastikan Kamu Sudah Maksimalkan Hari Buat Cobain Semua Hal Yang Ada di Dunia!",
                     textAlign = TextAlign.Center,
                     color = Color.Gray
                 )
