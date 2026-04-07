@@ -12,10 +12,11 @@
 ## Tampilan Aplikasi
 
 ### Tampilan 1 (Home Screen)
-![Tampilan 1](Screenshot/lembar 1.png)
+![Tampilan 1](Screenshot/lembar%201.png)
 
 ### Tampilan 2 (Detail Screen)
-![Tampilan 2](Screenshot/lembar 2.png)
+![Tampilan 2](Screenshot/lembar%202.png)
+
 
 Oleh:
 - Mulya Delani (123140019)
