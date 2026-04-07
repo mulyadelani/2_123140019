@@ -3,9 +3,9 @@
 Project ini merupakan aplikasi manajemen catatan harian yang dirancang dengan **Jetpack Compose**, mengutamakan estetika visual modern dan sistem navigasi yang robust. Aplikasi ini mengimplementasikan siklus **CRUD** lengkap dengan pengelolaan state yang reaktif dan desain UI premium berbasis **Material 3**.
 
 ## video demo
+https://github.com/user-attachments/assets/a5cb002a-cf35-49d1-9fc4-abd32dc7bf42
 
 ## 📸 Screen Preview
-
 | Home Screen | Favorite Screen | Profile Screen |
 |:---:|:---:|:---:|
 | <img src="screenshot/home.png" width="200"> | <img src="screenshot/favorite.png" width="200"> | <img src="screenshot/profile.png" width="200"> |
