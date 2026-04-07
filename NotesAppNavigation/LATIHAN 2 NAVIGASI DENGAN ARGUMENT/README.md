@@ -9,5 +9,5 @@
 - [x] Back navigation
 
 ## Tampilan Aplikasi
-![Note List](Screenshot/output1.png)
+![Note List](Screenshot/ouput1.png)
 ![Note Detail](Screenshot/output2.png)
