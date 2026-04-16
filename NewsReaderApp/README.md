@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/6cc25cf4-81dd-42c9-85e9-52b63a551fe4
+
 # 🌸 InspirasiDaily - Jurnal Lifestyle & Tren
 
 InspirasiDaily adalah aplikasi pembaca konten modern berbasis Android yang dirancang khusus untuk memberikan inspirasi harian mulai dari fashion, self-care, hingga tips keuangan. Dibangun menggunakan **Jetpack Compose**, aplikasi ini menawarkan antarmuka yang elegan dan lembut, sangat cocok untuk pengguna yang menyukai estetika minimalis.
@@ -17,6 +21,10 @@ InspirasiDaily adalah aplikasi pembaca konten modern berbasis Android yang diran
 - **MVVM Architecture:** Struktur kode yang terorganisir untuk kemudahan pengembangan lebih lanjut.
 
 ## Video Demo
+
+
+https://github.com/user-attachments/assets/9f8d771d-8bd1-468c-811d-112d48941676
+
 
 
 ## 📸 Tampilan Aplikasi
