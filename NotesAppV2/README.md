@@ -3,10 +3,17 @@
 Update tugas minggu 7: Aplikasi catatan harian dengan fitur lengkap, database lokal, dan desain estetik bertema Pink.
 
 ## 📺 Video Demo
-[Link Video Demo - 45 Detik]
 
-## 📸 Screen Preview
-*(Update screenshot di folder `screenshot/` setelah menjalankan aplikasi)*
+
+## 📸 Screen Preview Minggu 7
+
+| Home Screen | Favorite Screen | Profile Screen |
+|:---:|:---:|:---:|
+| ![Home](screenshot/home.png) | ![Favorite](screenshot/favorite.png) | ![Profile](screenshot/profile.png) |
+
+|              Detail Note              |
+|:-------------------------------------:|
+| ![Detail](screenshot/detail note.png) |
 
 ## 🛠️ Fitur Baru (Update Minggu 7)
 
