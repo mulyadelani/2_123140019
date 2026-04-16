@@ -13,7 +13,7 @@ Update tugas minggu 7: Aplikasi catatan harian dengan fitur lengkap, database lo
 
 |              Detail Note              |
 |:-------------------------------------:|
-| ![Detail](screenshot/detail note.png) |
+| ![Detail](screenshot/detail%20note.png) |
 
 ## 🛠️ Fitur Baru (Update Minggu 7)
 
