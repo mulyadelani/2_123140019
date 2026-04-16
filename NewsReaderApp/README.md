@@ -32,7 +32,7 @@ Nikmati setiap detail visual yang dirancang untuk kenyamanan mata:
 
 |      Beranda Inspirasi       |          Detail Artikel          |              Tampilan Web               |
 |:----------------------------:|:--------------------------------:|:---------------------------------------:|
-| ![Home](Screenshot/Home.png) | ![Detail](Screenshot/Detail.png) | ![Browser](Screenshot/Tampilan web.png) |
+| ![Home](Screenshot/Home.png) | ![Detail](Screenshot/Detail.png) | ![Browser](Screenshot/Browser.png) |
 
 ## 🕯️ Manajemen Data
 Aplikasi ini menerapkan **Repository Pattern** dengan pendekatan *Local-First*:
