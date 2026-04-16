@@ -16,12 +16,15 @@ InspirasiDaily adalah aplikasi pembaca konten modern berbasis Android yang diran
 - **Coil:** Pemuatan gambar yang cepat untuk menampilkan visual artikel yang menarik.
 - **MVVM Architecture:** Struktur kode yang terorganisir untuk kemudahan pengembangan lebih lanjut.
 
+## Video Demo
+
+
 ## 📸 Tampilan Aplikasi
 Nikmati setiap detail visual yang dirancang untuk kenyamanan mata:
 
-| Beranda Inspirasi | Detail Artikel | Tampilan Web |
-| :---: | :---: | :---: |
-| ![Home](Screenshot/) | ![Detail](Screenshot/) | ![Browser](Screenshot/) |
+|      Beranda Inspirasi       |          Detail Artikel          |              Tampilan Web               |
+|:----------------------------:|:--------------------------------:|:---------------------------------------:|
+| ![Home](Screenshot/Home.png) | ![Detail](Screenshot/Detail.png) | ![Browser](Screenshot/Tampilan web.png) |
 
 ## 🕯️ Manajemen Data
 Aplikasi ini menerapkan **Repository Pattern** dengan pendekatan *Local-First*:
