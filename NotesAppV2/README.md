@@ -5,6 +5,10 @@ Update tugas minggu 7: Aplikasi catatan harian dengan fitur lengkap, database lo
 ## 📺 Video Demo
 
 
+https://github.com/user-attachments/assets/608e8653-b94f-4303-88f9-104924b2b5fd
+
+
+
 ## 📸 Screen Preview Minggu 7
 
 | Home Screen | Favorite Screen | Profile Screen |
