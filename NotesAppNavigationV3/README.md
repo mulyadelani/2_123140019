@@ -80,6 +80,22 @@ graph TD
 
 ---
 
+## 📱 Screenshots
+
+| Home | Profile | Settings |
+| :---: | :---: | :---: |
+| <img src="screenshot/Home.jpg" width="250"> | <img src="screenshot/Prodile.jpg" width="250"> | <img src="screenshot/Settings.jpg" width="250"> |
+
+| Dark Mode | Detail Note |
+| :---: | :---: |
+| <img src="screenshot/Dark%20Mode.jpg" width="250"> | <img src="screenshot/Detail%20Note.jpg" width="250"> |
+
+| Edit Note | Favorites |
+| :---: | :---: |
+| <img src="screenshot/Edit%20Note.jpg" width="250"> | <img src="screenshot/Favorites.jpg" width="250"> |
+
+---
+
 ## 📸 Identitas Mahasiswa
 - **Nama**: Mulya Delani
 - **NIM**: 123140019
