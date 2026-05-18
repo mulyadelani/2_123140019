@@ -1,18 +1,14 @@
 package com.example.notesappnavigation
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -20,6 +16,7 @@ import com.example.notesappnavigation.components.MyBottomBar
 import com.example.notesappnavigation.navigation.*
 import com.example.notesappnavigation.screens.*
 import com.example.notesappnavigation.database.*
+import com.example.notesappnavigation.platform.NetworkMonitor
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -30,6 +27,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val noteViewModel: NoteViewModel = koinViewModel()
     val settingsDataStore: SettingsDataStore = koinInject()
+    val networkMonitor: NetworkMonitor = koinInject()
     
     val notes by noteViewModel.notes.collectAsState()
     val favoriteNotes by noteViewModel.favoriteNotes.collectAsState()
@@ -37,6 +35,7 @@ fun MainScreen() {
     val searchQuery by noteViewModel.searchQuery.collectAsState()
     val isDarkMode by settingsDataStore.isDarkMode.collectAsState(initial = false)
     val sortOrder by settingsDataStore.sortOrder.collectAsState(initial = "newest")
+    val isConnected by networkMonitor.isConnected.collectAsState(initial = true)
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -45,18 +44,14 @@ fun MainScreen() {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Pink Notes",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 2.sp
-                        ),
-                        color = Color.White
+                        "MY NOTES",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+                )
             )
         },
         bottomBar = { MyBottomBar(navController) },
@@ -64,11 +59,7 @@ fun MainScreen() {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.AddNote.route) },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .padding(bottom = 80.dp)
-                    .testTag("add_note_fab")
+                contentColor = Color.White
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
@@ -83,6 +74,7 @@ fun MainScreen() {
                 NoteListScreen(
                     notes = if (sortOrder == "newest") notes else notes.reversed(),
                     isLoading = isLoading,
+                    isConnected = isConnected,
                     searchQuery = searchQuery,
                     onSearchQueryChange = { noteViewModel.updateSearchQuery(it) },
                     onNoteClick = { id -> navController.navigate(Screen.NoteDetail.createRoute(id.toInt())) },

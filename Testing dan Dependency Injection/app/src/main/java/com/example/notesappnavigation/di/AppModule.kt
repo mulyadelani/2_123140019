@@ -1,33 +1,29 @@
 package com.example.notesappnavigation.di
 
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.example.notesappnavigation.database.*
+import com.example.notesappnavigation.database.NoteDatabase
+import com.example.notesappnavigation.database.NoteRepository
+import com.example.notesappnavigation.database.NoteViewModel
+import com.example.notesappnavigation.database.SettingsDataStore
 import com.example.notesappnavigation.platform.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
-// Data Module: Singleton for Database and Repository
 val dataModule = module {
     single {
-        AndroidSqliteDriver(NoteDatabase.Schema, androidContext(), "notes_v2.db")
+        val driver = AndroidSqliteDriver(NoteDatabase.Schema, androidContext(), "notes_v2.db")
+        NoteDatabase(driver)
     }
-    single { NoteDatabase(get()) }
-    single<NoteRepository> { NoteRepositoryImpl(get()) }
+    single { NoteRepository(get()) }
     single { SettingsDataStore(androidContext()) }
-}
-
-// ViewModel Module: Injecting NoteViewModel
-val viewModelModule = module {
-    viewModel { NoteViewModel(get()) }
-}
-
-// Platform Module: Platform-specific implementations
-val platformModule = module {
+    
+    // Platform Features
     single<DeviceInfo> { AndroidDeviceInfo() }
     single<NetworkMonitor> { AndroidNetworkMonitor(androidContext()) }
     single<BatteryInfo> { AndroidBatteryInfo(androidContext()) }
 }
 
-// Global appModule to combine all modules
-val appModule = listOf(dataModule, viewModelModule, platformModule)
+val viewModelModule = module {
+    viewModel { NoteViewModel(get()) }
+}

@@ -9,38 +9,35 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PinkPrimary,
-    secondary = SoftPink,
-    tertiary = DeepPink,
-    background = DarkBackground,
-    surface = DarkSurface,
-    onPrimary = Color.DarkGray,
-    onSecondary = Color.DarkGray,
-    onBackground = Color(0xFFFCE4EC),
-    onSurface = Color(0xFFFCE4EC)
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = DeepPink,
-    secondary = PinkPrimary,
-    tertiary = SoftPink,
-    background = CreamBackground,
-    surface = Color.White,
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
-    onSecondary = Color.DarkGray,
-    onTertiary = Color.DarkGray,
-    onBackground = Color(0xFF880E4F), // Muted dark pink for text
-    onSurface = Color(0xFFAD1457)     // Deep pink for surface text
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
 )
 
 @Composable
 fun NotesAppNavigationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -48,6 +45,7 @@ fun NotesAppNavigationTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

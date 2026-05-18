@@ -1,104 +1,73 @@
-# TUGAS PRAKTIKUM MINGGU 8 - Pink Notes App Upgrade 🌸✨
+#NotesAppNavigation - Tugas Praktikum Minggu 10 📝🧪
 
-Aplikasi ini telah di-upgrade dengan tema estetik Pink, fitur platform, dan implementasi **Dependency Injection** menggunakan **Koin**.
-
----
-
-## 🎨 New Aesthetic UI (Pink Theme)
-Aplikasi kini memiliki tampilan khusus "Pink Theme" yang estetik:
-- **Floating Bottom Bar**: Navigasi melayang dengan sudut melengkung.
-- **Custom Pink Palette**: Perpaduan Soft Pink, Hot Pink, dan Cream.
-- **Rounded Aesthetic**: Semua kartu dan input memiliki desain *rounded* yang modern.
+Aplikasi **Pocketwise** adalah aplikasi manajemen catatan berbasis Android yang mengimplementasikan standar arsitektur modern dengan **Dependency Injection**, **Reactive Programming**, dan **Automated Testing**.
 
 ---
 
-## 🏗️ Architecture Diagram
+## 🏗️ Architecture & Tech Stack
 
-Project ini mengadopsi struktur modular dengan pemisahan tanggung jawab yang jelas:
+Project ini menggunakan pemisahan tanggung jawab yang jelas untuk meningkatkan skalabilitas dan kemudahan pengujian:
 
 ```mermaid
 graph TD
-    subgraph "UI Layer (Compose - Pink Theme)"
+    subgraph "UI Layer (Jetpack Compose)"
         MainScreen --> NoteListScreen
-        MainScreen --> SettingsScreen
-        NoteListScreen --> NetworkIndicatorUI
-        SettingsScreen --> DeviceInfoUI
+        MainScreen --> FavoritesScreen
+        MainScreen --> NoteDetailScreen
+        NoteScreenTest[NoteScreenTest.kt] -.-> |UI Tests| NoteListScreen
     end
 
     subgraph "Dependency Injection (Koin)"
-        AppModule[AppModule.kt]
+        dataModule[AppModule.kt: dataModule]
+        viewModelModule[AppModule.kt: viewModelModule]
     end
 
     subgraph "Logic & Data Layer"
         NoteViewModel --> NoteRepository
-        NoteRepository --> SQLDelight[(Database)]
-        NoteRepository --> DataStore[(Preferences)]
-    end
-
-    subgraph "Platform Features (Expect/Actual Abstraction)"
-        DeviceInfo[DeviceInfo Interface]
-        NetworkMonitor[NetworkMonitor Interface]
-        BatteryInfo[BatteryInfo - Bonus]
+        NoteRepository --> SQLDelight[(SQLite Database)]
+        NoteRepository --> SettingsDataStore[(Preferences)]
         
-        AndroidImpl[Android Implementation]
+        NoteViewModelTest[ViewModelTest - MockK] -.-> NoteViewModel
+        NoteRepositoryTest[RepoTest - In-Memory] -.-> NoteRepository
     end
 
-    %% DI Flow
-    AppModule -.-> |Inject| NoteViewModel
-    AppModule -.-> |Inject| DeviceInfo
-    AppModule -.-> |Inject| NetworkMonitor
-    
-    %% Flow
-    NoteViewModel --> NetworkMonitor
-    SettingsScreen --> DeviceInfo
-    SettingsScreen --> BatteryInfo
+    %% DI Connections
+    dataModule -.-> |Provides| NoteRepository
+    viewModelModule -.-> |Inject| NoteViewModel
 ```
 
 ---
 
-## 📝 Fitur Utama & Deskripsi Tugas
+## 📝 Deskripsi Tugas & Fitur
 
-1.  **Koin DI Setup**: Implementasi penuh Koin untuk menyuntikkan (inject) Repository, ViewModel, dan Platform Services secara otomatis.
-2.  **DeviceInfo (expect/actual pattern)**: Abstraksi untuk mengambil informasi hardware (Model, Manufacturer, OS).
-3.  **NetworkMonitor (expect/actual pattern)**: Memantau konektivitas secara reaktif menggunakan `callbackFlow` dan ditampilkan di UI secara real-time.
-4.  **Aesthetic Settings Screen**: Menampilkan informasi sistem dan pengaturan aplikasi dalam desain kartu estetik.
-5.  **Reactive Network UI**: Bar indikator "Connected to Pink Network" yang berubah warna sesuai status internet.
-6.  **Full Injection**: Seluruh komponen dikelola dalam `appModule`.
-
----
-
-## ✅ Rubrik Penilaian
-
-| Komponen | Bobot | Status |
-| :--- | :---: | :--- |
-| **Koin DI Setup** | 25% | Terimplementasi (AppModule & NotesApplication) |
-| **expect/actual Pattern** | 25% | Terimplementasi (Pola Interface & Implementasi Platform) |
-| **Aesthetic UI Integration** | 20% | Terimplementasi (Home, Settings, Profile with Pink Theme) |
-| **Architecture** | 20% | Clean separation & modular package structure |
-| **Code Quality** | 10% | Clean code, Comments, & Documentation |
-| **Bonus ⭐** | +10% | **BatteryInfo implementation (Level & Status)** |
+1.  **Koin Dependency Injection**: Implementasi `AppModule.kt` untuk mengelola instansi Singleton (Repository, Database) dan ViewModel secara otomatis, mengurangi *boilerplate code*.
+2.  **SQLDelight Persistence**: Menggunakan SQLDelight untuk manajemen database yang *type-safe* dan reaktif (menggunakan Flow untuk memantau perubahan data).
+3.  **Unit Testing (Logic)**: 
+    - **ViewModel Test**: Menguji logika pencarian, penghapusan, dan pembaruan status favorit menggunakan **MockK**.
+    - **Repository Test**: Memastikan query SQL bekerja dengan benar menggunakan **In-Memory SQLite Driver**.
+4.  **UI Testing (Compose)**: Pengujian otomatis pada `NoteScreenTest.kt` menggunakan `createComposeRule()` untuk memverifikasi komponen UI seperti list catatan dan *empty state*.
+5.  **Platform Integration**: Penambahan fitur `DeviceInfo`, `BatteryInfo`, dan `NetworkMonitor` yang di-inject via Koin untuk memantau status perangkat secara *real-time*.
+6.  **Code Coverage**: Verifikasi kualitas pengujian melalui fitur *Run with Coverage* di Android Studio.
 
 ---
 
-## 📱 Screenshots
+## 📸 Dokumentasi Pengujian
 
-| Home | Profile | Settings |
-| :---: | :---: | :---: |
-| <img src="screenshot/Home.jpg" width="250"> | <img src="screenshot/Prodile.jpg" width="250"> | <img src="screenshot/Settings.jpg" width="250"> |
-
-| Dark Mode | Detail Note |
+| Unit Test & Repository Test | Code Coverage Report |
 | :---: | :---: |
-| <img src="screenshot/Dark%20Mode.jpg" width="250"> | <img src="screenshot/Detail%20Note.jpg" width="250"> |
-
-| Edit Note | Favorites |
-| :---: | :---: |
-| <img src="screenshot/Edit%20Note.jpg" width="250"> | <img src="screenshot/Favorites.jpg" width="250"> |
+| ![Unit Test](screenshot/Unit_test_result.png) | ![Coverage](screenshot/Run%20with%20Coverage.png) |
 
 ---
 
-## 📸 Identitas Mahasiswa
+## 🎥 Video Demo
+*(Menunjukkan fungsionalitas aplikasi dan proses running test)*
+Link Video: [YouTube / Google Drive Link](URL_VIDEO_DEMO)
+
+---
+**Identitas Mahasiswa:**
 - **Nama**: Mulya Delani
 - **NIM**: 123140019
+- **Kelas**: Pengembangan Aplikasi Mobile (PAM)
 
 ---
-*Pengembangan Aplikasi Mobile*
+*Dibuat untuk memenuhi tugas Praktikum Minggu 10 - Testing & DI*

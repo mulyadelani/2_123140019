@@ -1,146 +1,139 @@
 package com.example.notesappnavigation.database
 
-import io.mockk.*
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import app.cash.turbine.test
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NoteRepositoryTest {
-    private val database: NoteDatabase = mockk()
-    private val queries: NoteEntityQueries = mockk(relaxed = true)
-    private lateinit var repository: NoteRepository
 
-    @BeforeTest
+    private lateinit var repository: NoteRepository
+    private lateinit var database: NoteDatabase
+
+    @Before
     fun setup() {
-        every { database.noteEntityQueries } returns queries
-        repository = NoteRepositoryImpl(database)
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        NoteDatabase.Schema.create(driver)
+        database = NoteDatabase(driver)
+        repository = NoteRepository(database)
     }
 
     @Test
-    fun `insertNote should call queries insertNote`() = runBlocking {
+    fun `insertNote should add note to database`() = runTest {
         // Arrange
         val title = "Test Title"
-        val desc = "Test Desc"
+        val desc = "Test Description"
         val content = "Test Content"
-        val reminder = "2023-10-10"
+        val reminder = "Test Reminder"
 
         // Act
         repository.insertNote(title, desc, content, reminder)
 
         // Assert
-        verify {
-            queries.insertNote(
-                id = null,
-                title = title,
-                description = desc,
-                content = content,
-                reminder = reminder,
-                isFavorite = 0L,
-                any() // createdAt
-            )
+        repository.getAllNotes().test {
+            val notes = awaitItem()
+            assertEquals(1, notes.size)
+            assertEquals(title, notes[0].title)
+            assertEquals(desc, notes[0].description)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `deleteNote should call queries deleteNote`() = runBlocking {
+    fun `deleteNote should remove note from database`() = runTest {
         // Arrange
-        val noteId = 1L
+        repository.insertNote("Title", "Desc", "Content", "Reminder")
+        val notesBefore = repository.getNoteById(1L)
+        assertTrue(notesBefore != null)
 
         // Act
-        repository.deleteNote(noteId)
+        repository.deleteNote(1L)
 
         // Assert
-        verify { queries.deleteNote(noteId) }
+        val notesAfter = repository.getNoteById(1L)
+        assertTrue(notesAfter == null)
     }
 
     @Test
-    fun `updateNote should call queries updateNote`() = runBlocking {
+    fun `updateFavorite should change favorite status`() = runTest {
         // Arrange
+        repository.insertNote("Title", "Desc", "Content", "Reminder")
+        
+        // Act
+        repository.updateFavorite(1L, true)
+
+        // Assert
+        val note = repository.getNoteById(1L)
+        assertEquals(1L, note?.isFavorite)
+
+        // Act - toggle back
+        repository.updateFavorite(1L, false)
+        val note2 = repository.getNoteById(1L)
+        assertEquals(0L, note2?.isFavorite)
+    }
+
+    @Test
+    fun `searchNotes should return matching notes`() = runTest {
+        // Arrange
+        repository.insertNote("Apple", "Desc", "Content", "Reminder")
+        repository.insertNote("Banana", "Desc", "Content", "Reminder")
+
+        // Act & Assert
+        repository.searchNotes("Apple").test {
+            val result = awaitItem()
+            assertEquals(1, result.size)
+            assertEquals("Apple", result[0].title)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getFavoriteNotes should only return favorite notes`() = runTest {
+        // Arrange
+        repository.insertNote("Fav", "Desc", "Content", "Reminder")
+        repository.insertNote("Not Fav", "Desc", "Content", "Reminder")
+        repository.updateFavorite(1L, true)
+
+        // Act & Assert
+        repository.getFavoriteNotes().test {
+            val favs = awaitItem()
+            assertEquals(1, favs.size)
+            assertEquals("Fav", favs[0].title)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `updateNote should modify existing note`() = runTest {
+        // Arrange
+        repository.insertNote("Old Title", "Old Desc", "Old Content", "Old Reminder")
         val id = 1L
-        val title = "Updated Title"
-        val desc = "Updated Desc"
-        val content = "Updated Content"
-        val reminder = "2023-11-11"
 
         // Act
-        repository.updateNote(id, title, desc, content, reminder)
+        repository.updateNote(id, "New Title", "New Desc", "New Content", "New Reminder")
 
         // Assert
-        verify { queries.updateNote(title, desc, content, reminder, id) }
+        val updatedNote = repository.getNoteById(id)
+        assertEquals("New Title", updatedNote?.title)
+        assertEquals("New Desc", updatedNote?.description)
+        assertEquals("New Content", updatedNote?.content)
     }
 
     @Test
-    fun `updateFavorite should call queries updateFavorite`() = runBlocking {
+    fun `searchNotes with no match should return empty list`() = runTest {
         // Arrange
-        val id = 1L
-        val isFavorite = true
+        repository.insertNote("Title", "Desc", "Content", "Reminder")
 
-        // Act
-        repository.updateFavorite(id, isFavorite)
-
-        // Assert
-        verify { queries.updateFavorite(1L, id) }
-    }
-
-    @Test
-    fun `getNoteById should return note from queries`() {
-        // Arrange
-        val id = 1L
-        val mockNote = NoteEntity(id, "Title", "Desc", "Content", "Reminder", 0L, 12345L)
-        val mockQuery = mockk<app.cash.sqldelight.Query<NoteEntity>>()
-        every { queries.selectById(id) } returns mockQuery
-        every { mockQuery.executeAsOneOrNull() } returns mockNote
-
-        // Act
-        val result = repository.getNoteById(id)
-
-        // Assert
-        assertNotNull(result)
-        assertEquals("Title", result.title)
-        verify { queries.selectById(id) }
-    }
-
-    @Test
-    fun `getAllNotes should call selectAll query`() = runBlocking {
-        // Arrange
-        val mockQuery = mockk<app.cash.sqldelight.Query<NoteEntity>>(relaxed = true)
-        every { queries.selectAll() } returns mockQuery
-
-        // Act: We just call it, mapping occurs in implementation
-        repository.getAllNotes()
-
-        // Assert
-        verify { queries.selectAll() }
-    }
-
-    @Test
-    fun `getFavoriteNotes should call selectFavorites query`() = runBlocking {
-        // Arrange
-        val mockQuery = mockk<app.cash.sqldelight.Query<NoteEntity>>(relaxed = true)
-        every { queries.selectFavorites() } returns mockQuery
-
-        // Act
-        repository.getFavoriteNotes()
-
-        // Assert
-        verify { queries.selectFavorites() }
-    }
-
-    @Test
-    fun `searchNotes should call search query with correct parameters`() = runBlocking {
-        // Arrange
-        val search = "pink"
-        val mockQuery = mockk<app.cash.sqldelight.Query<NoteEntity>>(relaxed = true)
-        every { queries.searchNotes(search, search) } returns mockQuery
-
-        // Act
-        repository.searchNotes(search)
-
-        // Assert
-        verify { queries.searchNotes(search, search) }
+        // Act & Assert
+        repository.searchNotes("NonExistent").test {
+            val result = awaitItem()
+            assertTrue(result.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

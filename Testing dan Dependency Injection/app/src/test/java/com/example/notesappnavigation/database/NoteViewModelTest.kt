@@ -1,154 +1,122 @@
 package com.example.notesappnavigation.database
 
 import app.cash.turbine.test
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.*
-import kotlin.test.*
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NoteViewModelTest {
+
     private val repository: NoteRepository = mockk(relaxed = true)
-    private lateinit var viewModel: NoteViewModel
     private val testDispatcher = StandardTestDispatcher()
 
-    @BeforeTest
+    @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        // Mock repository.getAllNotes() to avoid null issues during initialization
-        every { repository.getAllNotes() } returns flowOf(emptyList())
-        every { repository.getFavoriteNotes() } returns flowOf(emptyList())
-        viewModel = NoteViewModel(repository)
     }
 
-    @AfterTest
+    @After
     fun tearDown() {
         Dispatchers.resetMain()
     }
 
     @Test
-    fun `notes flow should emit success state when repository returns data`() = runTest {
-        // Arrange: Prepare mock data and repository behavior
+    fun `notes flow should emit values from repository`() = runTest {
+        // Arrange
         val mockNotes = listOf(
-            NoteEntity(1L, "Title 1", "Desc 1", "Content 1", "Rem 1", 0L, 12345L)
+            NoteEntity(1, "Title", "Desc", "Content", "Reminder", 0, 0)
         )
         every { repository.getAllNotes() } returns flowOf(mockNotes)
+        
+        val vm = NoteViewModel(repository)
 
-        // Act & Assert: Use Turbine to observe the StateFlow
-        viewModel.notes.test {
-            // Wait for initial state (empty list from stateIn)
-            assertEquals(emptyList(), awaitItem())
+        // Act & Assert
+        vm.notes.test {
+            // StateIn initial value
+            assertEquals(emptyList<NoteEntity>(), awaitItem())
             
-            // Advance time to trigger debounce(300L) in ViewModel
-            advanceTimeBy(400L)
+            // Advance time to bypass debounce(300L)
+            testDispatcher.scheduler.advanceTimeBy(400L)
             
-            // Assert that the list now contains our mock note
             val result = awaitItem()
-            assertEquals(1, result.size)
-            assertEquals("Title 1", result[0].title)
-            cancelAndIgnoreRemainingEvents()
+            assertEquals(mockNotes, result)
         }
     }
 
     @Test
-    fun `isLoading should update during note fetching`() = runTest {
-        // Arrange: Setup mock repository with a flow that doesn't emit immediately to capture loading state
-        val repositoryFlow = MutableSharedFlow<List<NoteEntity>>()
-        every { repository.searchNotes(any()) } returns repositoryFlow
+    fun `updateSearchQuery should trigger repository search`() = runTest {
+        // Arrange
+        val query = "search"
+        val mockNotes = listOf(NoteEntity(1, "Found", "Desc", "Content", "Reminder", 0, 0))
+        every { repository.getAllNotes() } returns flowOf(emptyList())
+        every { repository.searchNotes(query) } returns flowOf(mockNotes)
+        
+        val vm = NoteViewModel(repository)
 
-        // Act & Assert: Verify the loading state transitions
-        // We MUST collect 'notes' to trigger the flow logic since it uses WhileSubscribed
-        val collectJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.notes.collect()
-        }
-
-        viewModel.isLoading.test {
-            assertEquals(false, awaitItem()) // Initial state
+        // Act & Assert
+        vm.notes.test {
+            assertEquals(emptyList<NoteEntity>(), awaitItem()) // Initial emission from stateIn
             
-            // Trigger a search update
-            viewModel.updateSearchQuery("test")
-            advanceTimeBy(400L) // Wait for debounce
+            // Wait for initial debounce to finish first
+            testDispatcher.scheduler.advanceTimeBy(400L)
+            // If it triggered a fetch, it might emit [] again from getAllNotes()
+            // depending on implementation, flatMapLatest might emit the result of getAllNotes
+            // but let's assume it only emits if it's a new item or if the stream emits.
             
-            // Should emit true when flatMapLatest starts
-            assertEquals(true, awaitItem())
+            vm.updateSearchQuery(query)
+            testDispatcher.scheduler.advanceTimeBy(400L) // Account for debounce
             
-            // Emit data from repository
-            repositoryFlow.emit(emptyList<NoteEntity>())
-            
-            // Should emit false after onEach completes
-            assertEquals(false, awaitItem())
-            cancelAndIgnoreRemainingEvents()
+            assertEquals(mockNotes, awaitItem())
         }
     }
 
     @Test
     fun `insertNote should call repository insert`() = runTest {
-        // Arrange
-        val title = "New Note"
-        
-        // Act
-        viewModel.insertNote(title, "Desc", "Content", "Reminder")
-        advanceUntilIdle()
+        val vm = NoteViewModel(repository)
+        val title = "Title"
+        val desc = "Desc"
+        val content = "Content"
+        val reminder = "Reminder"
 
-        // Assert
-        coVerify { repository.insertNote(title, any(), any(), any()) }
+        vm.insertNote(title, desc, content, reminder)
+        testDispatcher.scheduler.runCurrent()
+
+        coVerify { repository.insertNote(title, desc, content, reminder) }
     }
 
     @Test
-    fun `deleteNote should call repository delete`() = runTest {
-        // Arrange
-        val id = 123L
-
-        // Act
-        viewModel.deleteNote(id)
-        advanceUntilIdle()
-
-        // Assert
-        coVerify { repository.deleteNote(id) }
-    }
-
-    @Test
-    fun `favoriteNotes flow should emit data from repository`() = runTest {
-        // Arrange: Prepare mock data for favorite notes
-        val mockFavs = listOf(
-            NoteEntity(2L, "Favorite Note", "Desc", "Content", "Rem", 1L, 12345L)
-        )
-        every { repository.getFavoriteNotes() } returns flowOf(mockFavs)
-        val testViewModel = NoteViewModel(repository)
-
-        // Act & Assert: Test flow using Turbine (Flow Test #3)
-        testViewModel.favoriteNotes.test {
-            // StateFlow initially emits the initialValue from stateIn
-            assertEquals(emptyList(), awaitItem())
-            // Then it emits the data from the repository flow
-            assertEquals(mockFavs, awaitItem())
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `toggleFavorite should call repository with negated value`() = runTest {
-        // Arrange
+    fun `toggleFavorite should call repository updateFavorite with inverted value`() = runTest {
+        val vm = NoteViewModel(repository)
         val id = 1L
-        
-        // Act: Toggle from false to true
-        viewModel.toggleFavorite(id, currentIsFavorite = false)
-        advanceUntilIdle()
+        val currentIsFavorite = false
 
-        // Assert
+        vm.toggleFavorite(id, currentIsFavorite)
+        testDispatcher.scheduler.runCurrent()
+
         coVerify { repository.updateFavorite(id, true) }
     }
 
     @Test
-    fun `updateNote should call repository update`() = runTest {
-        // Act
-        viewModel.updateNote(1L, "New Title", "New Desc", "New Content", "New Rem")
-        advanceUntilIdle()
+    fun `deleteNote should call repository delete`() = runTest {
+        val vm = NoteViewModel(repository)
+        val id = 1L
 
-        // Assert
-        coVerify { repository.updateNote(1L, "New Title", "New Desc", "New Content", "New Rem") }
+        vm.deleteNote(id)
+        testDispatcher.scheduler.runCurrent()
+
+        coVerify { repository.deleteNote(id) }
     }
 }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -19,17 +18,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.notesappnavigation.database.NoteEntity
 import com.example.notesappnavigation.platform.BatteryInfo
 import com.example.notesappnavigation.platform.DeviceInfo
-import com.example.notesappnavigation.platform.NetworkMonitor
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,27 +34,22 @@ import java.util.*
 fun NoteListScreen(
     notes: List<NoteEntity>,
     isLoading: Boolean,
+    isConnected: Boolean, // Hoisted state
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onNoteClick: (Long) -> Unit,
     onDeleteNote: (Long) -> Unit,
     onToggleFavorite: (Long, Boolean) -> Unit
 ) {
-    val networkMonitor: NetworkMonitor = koinInject()
-    val isConnected by networkMonitor.isConnected.collectAsState(initial = true)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
     ) {
-        // Aesthetic Network Status Indicator
+        // Network Status Indicator
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            color = if (isConnected) Color(0xFF81C784).copy(alpha = 0.2f) else Color(0xFFE57373).copy(alpha = 0.2f)
+            modifier = Modifier.fillMaxWidth(),
+            color = if (isConnected) Color(0xFF4CAF50) else Color(0xFFF44336)
         ) {
             Row(
                 modifier = Modifier.padding(8.dp),
@@ -68,15 +59,14 @@ fun NoteListScreen(
                 Icon(
                     imageVector = if (isConnected) Icons.Default.CheckCircle else Icons.Default.Warning,
                     contentDescription = null,
-                    tint = if (isConnected) Color(0xFF2E7D32) else Color(0xFFC62828),
-                    modifier = Modifier.size(14.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isConnected) "Connected to Pink Network" else "Network is Offline",
-                    color = if (isConnected) Color(0xFF2E7D32) else Color(0xFFC62828),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Medium
+                    text = if (isConnected) "Online" else "Offline",
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }
@@ -84,34 +74,24 @@ fun NoteListScreen(
         SearchBar(
             query = searchQuery,
             onQueryChange = onSearchQueryChange,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier.padding(16.dp)
         )
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator()
             }
         } else if (notes.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Star, 
-                        contentDescription = null, 
-                        modifier = Modifier.size(80.dp), 
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                    )
-                    Text(
-                        "Belum ada catatan cantik.", 
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                        modifier = Modifier.testTag("empty_state_text")
-                    )
+                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
+                    Text("Tidak Ada Catatan.", color = Color.Gray)
                 }
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.testTag("note_list")
+                contentPadding = PaddingValues(bottom = 80.dp, start = 16.dp, end = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(notes) { note ->
                     NoteItemEntity(
@@ -135,31 +115,26 @@ fun FavoritesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
     ) {
         Text(
-            "💖 Favorite Notes 💖",
+            "Favorite Notes",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = Color(0xFFE91E63)
         )
         
         if (favoriteNotes.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Favorite, 
-                        contentDescription = null, 
-                        modifier = Modifier.size(80.dp), 
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                    )
-                    Text("Favoritkan catatanmu!", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
+                    Text("Tidak Ada Favorite.", color = Color.Gray)
                 }
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(favoriteNotes) { note ->
@@ -181,15 +156,13 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: Modifier
         value = query,
         onValueChange = onQueryChange,
         modifier = modifier.fillMaxWidth(),
-        placeholder = { Text("Cari catatan pink...", color = Color.LightGray) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        shape = RoundedCornerShape(28.dp),
+        placeholder = { Text("Cari catatan...") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        shape = RoundedCornerShape(24.dp),
         singleLine = true,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
         )
     )
 }
@@ -202,46 +175,31 @@ fun NoteItemEntity(
     onFavClick: () -> Unit
 ) {
     val isFav = note.isFavorite == 1L
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(20.dp))
-            .clickable { onNoteClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().clickable { onNoteClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    note.title, 
-                    style = MaterialTheme.typography.titleMedium, 
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    note.description, 
-                    style = MaterialTheme.typography.bodySmall, 
-                    color = Color.Gray, 
-                    maxLines = 1
-                )
+                Text(note.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(note.description, style = MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
             }
             Row {
                 IconButton(onClick = onFavClick) {
                     Icon(
                         imageVector = if (isFav) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = if (isFav) Color(0xFFEC407A) else Color.LightGray
+                        tint = if (isFav) Color.Red else Color.Gray
                     )
                 }
                 if (onDeleteClick != null) {
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFFF8A80))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
                     }
                 }
             }
@@ -259,87 +217,45 @@ fun SettingsScreen(
     val deviceInfo: DeviceInfo = koinInject()
     val batteryInfo: BatteryInfo = koinInject()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-    ) {
-        Text(
-            "Settings ⚙️", 
-            style = MaterialTheme.typography.headlineMedium, 
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
         
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Dark Mode", fontWeight = FontWeight.Medium)
-                    Switch(
-                        checked = isDarkMode, 
-                        onCheckedChange = onDarkModeChange,
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                )
-
-                Text("Sort Order", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = sortOrder == "newest", 
-                        onClick = { onSortOrderChange("newest") },
-                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                    )
-                    Text("Newest First", modifier = Modifier.clickable { onSortOrderChange("newest") })
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = sortOrder == "oldest", 
-                        onClick = { onSortOrderChange("oldest") },
-                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                    )
-                    Text("Oldest First", modifier = Modifier.clickable { onSortOrderChange("oldest") })
-                }
-            }
+            Text("Dark Mode")
+            Switch(checked = isDarkMode, onCheckedChange = onDarkModeChange)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+        Text("Sort Order", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = sortOrder == "newest", onClick = { onSortOrderChange("newest") })
+            Text("Newest First", modifier = Modifier.clickable { onSortOrderChange("newest") })
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = sortOrder == "oldest", onClick = { onSortOrderChange("oldest") })
+            Text("Oldest First", modifier = Modifier.clickable { onSortOrderChange("oldest") })
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
         // Device Info Section
-        Text("Device Info ✨", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+        Text("Device Info", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(8.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                DeviceInfoItem("Model", deviceInfo.getDeviceModel())
-                DeviceInfoItem("Manufacturer", deviceInfo.getManufacturer())
-                DeviceInfoItem("OS Version", deviceInfo.getOsVersion())
-                
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                )
-                
-                DeviceInfoItem("Battery", "${batteryInfo.getBatteryLevel()}% (${if (batteryInfo.isCharging()) "Charging" else "Discharging"})")
-            }
-        }
+        DeviceInfoItem("Model", deviceInfo.getDeviceModel())
+        DeviceInfoItem("Manufacturer", deviceInfo.getManufacturer())
+        DeviceInfoItem("OS Version", deviceInfo.getOsVersion())
+        
+        // Battery Info (Bonus)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Battery Info (Bonus)", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4CAF50))
+        DeviceInfoItem("Level", "${batteryInfo.getBatteryLevel()}%")
+        DeviceInfoItem("Status", if (batteryInfo.isCharging()) "Charging" else "Discharging")
     }
 }
 
@@ -350,7 +266,7 @@ fun DeviceInfoItem(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -359,26 +275,23 @@ fun ProfileScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "My Profile",
+            text = "Profile",
             style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.Start).padding(bottom = 32.dp)
         )
 
         Box(contentAlignment = Alignment.BottomEnd) {
             Surface(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(150.dp)
                     .clip(CircleShape)
-                    .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                    .shadow(10.dp, CircleShape),
-                color = MaterialTheme.colorScheme.secondaryContainer
+                    .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -387,61 +300,27 @@ fun ProfileScreen() {
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-            Surface(
-                modifier = Modifier.size(40.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary,
-                shadowElevation = 4.dp
-            ) {
-                Icon(
-                    Icons.Default.Edit, 
-                    contentDescription = null, 
-                    modifier = Modifier.padding(10.dp),
-                    tint = Color.White
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Card(
+        ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(32.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
         ) {
             Column(
-                modifier = Modifier.padding(32.dp).fillMaxWidth(),
+                modifier = Modifier.padding(24.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Mulya Delani", 
-                    style = MaterialTheme.typography.headlineSmall, 
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Pinky Developer 🌸", 
-                    style = MaterialTheme.typography.bodyMedium, 
-                    color = MaterialTheme.colorScheme.primary
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "NIM: 123140019", 
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Text(text = "Nahli Saud Ramdani", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(text = "Student / Developer", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "NIM: 123140049", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -450,55 +329,22 @@ fun ProfileScreen() {
 
 @Composable
 fun NoteDetailScreen(note: NoteEntity, onEditClick: (Long) -> Unit, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-    ) {
-        IconButton(onClick = onBack, modifier = Modifier.background(MaterialTheme.colorScheme.surface, CircleShape)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(), 
-            shape = RoundedCornerShape(32.dp), 
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(32.dp)) {
-                Text(
-                    note.title.uppercase(), 
-                    style = MaterialTheme.typography.headlineMedium, 
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+        TextButton(onClick = onBack) { Text("← Kembali", color = MaterialTheme.colorScheme.primary) }
+        Spacer(modifier = Modifier.height(20.dp))
+        ElevatedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(note.title.uppercase(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Reminder: ${note.reminder}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    Text("Reminder: ${note.reminder}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(note.content, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
                 Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    note.content, 
-                    style = MaterialTheme.typography.bodyLarge, 
-                    lineHeight = 28.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-                Spacer(modifier = Modifier.height(40.dp))
-                Button(
-                    onClick = { onEditClick(note.id) }, 
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) { 
-                    Text("Edit My Pink Note ✍️", fontWeight = FontWeight.Bold) 
-                }
+                Button(onClick = { onEditClick(note.id) }, modifier = Modifier.fillMaxWidth()) { Text("Edit Catatan") }
             }
         }
     }
@@ -537,57 +383,32 @@ fun AddNoteScreen(onSave: (String, String, String, String) -> Unit, onBack: () -
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-    ) {
-        Text(
-            "New Pink Note 🌸",
-            style = MaterialTheme.typography.headlineMedium, 
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        CustomPinkTextField(value = title, onValueChange = { title = it }, label = "Judul Catatan")
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Tambah Catatan", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-        CustomPinkTextField(value = description, onValueChange = { description = it }, label = "Deskripsi Singkat")
-        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Judul") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Deskripsi") }, modifier = Modifier.fillMaxWidth())
         
         Box(modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }) {
-            CustomPinkTextField(
+            OutlinedTextField(
                 value = reminder,
                 onValueChange = { },
-                label = "Waktu Pengingat ⏰",
+                label = { Text("Reminder (Klik untuk pilih waktu)") },
+                modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                enabled = false
+                enabled = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        CustomPinkTextField(
-            value = content, 
-            onValueChange = { content = it }, 
-            label = "Tulis ceritamu di sini...", 
-            modifier = Modifier.weight(1f),
-            singleLine = false
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
-                onClick = onBack, 
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-            ) { Text("Batal") }
-            Button(
-                onClick = { onSave(title, description, content, reminder) }, 
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) { Text("Simpan", fontWeight = FontWeight.Bold) }
+        OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Isi") }, modifier = Modifier.fillMaxWidth().weight(1f))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Batal") }
+            Button(onClick = { onSave(title, description, content, reminder) }, modifier = Modifier.weight(1f)) { Text("Simpan") }
         }
     }
 }
@@ -625,89 +446,32 @@ fun EditNoteScreen(note: NoteEntity, onSave: (Long, String, String, String, Stri
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-    ) {
-        Text(
-            "Edit Pink Note 🌸", 
-            style = MaterialTheme.typography.headlineMedium, 
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        CustomPinkTextField(value = title, onValueChange = { title = it }, label = "Judul")
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Edit Catatan", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-        CustomPinkTextField(value = description, onValueChange = { description = it }, label = "Deskripsi")
-        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Judul") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Deskripsi") }, modifier = Modifier.fillMaxWidth())
         
         Box(modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }) {
-            CustomPinkTextField(
+            OutlinedTextField(
                 value = reminder,
                 onValueChange = { },
-                label = "Reminder",
+                label = { Text("Reminder (Klik untuk pilih waktu)") },
+                modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                enabled = false
+                enabled = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        CustomPinkTextField(
-            value = content, 
-            onValueChange = { content = it }, 
-            label = "Isi Catatan", 
-            modifier = Modifier.weight(1f),
-            singleLine = false
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
-                onClick = onBack, 
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) { Text("Batal") }
-            Button(
-                onClick = { onSave(note.id, title, description, content, reminder) }, 
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) { Text("Update", fontWeight = FontWeight.Bold) }
+        OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Isi") }, modifier = Modifier.fillMaxWidth().weight(1f))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Batal") }
+            Button(onClick = { onSave(note.id, title, description, content, reminder) }, modifier = Modifier.weight(1f)) { Text("Simpan") }
         }
     }
-}
-
-@Composable
-fun CustomPinkTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    enabled: Boolean = true,
-    singleLine: Boolean = true
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = modifier.fillMaxWidth(),
-        readOnly = readOnly,
-        enabled = enabled,
-        singleLine = singleLine,
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTextColor = MaterialTheme.colorScheme.onSurface
-        )
-    )
 }
